@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Moderación TTS - Fish AI</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #0e0e10; color: #efeff1; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+    .card { background: #18181b; width: 100%; max-width: 500px; padding: 25px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.6); border: 1px solid #26262c; }
+    h2 { color: #53fc18; text-align: center; margin-top: 0; }
+    .badge { background: #26262c; color: #adadb8; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+    label { font-size: 14px; font-weight: bold; margin-top: 15px; display: block; }
+    input, textarea, select { width: 100%; padding: 10px; margin-top: 5px; background: #0e0e10; border: 1px solid #3a3a44; border-radius: 6px; color: #fff; font-size: 14px; }
+    button { width: 100%; background: #53fc18; color: #000; border: none; padding: 12px; margin-top: 20px; font-weight: bold; font-size: 16px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+    button:hover { background: #42ca12; }
+    .status { text-align: center; margin-top: 15px; font-size: 13px; color: #adadb8; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Fish AI TTS Panel <span class="badge">Kick / YT</span></h2>
+    
+    <label for="modelId">ID del Modelo de Voz (Reference ID):</label>
+    <input type="text" id="modelId" placeholder="Ej: 7f4a2b1c3d4e..." value="7f4a2b1c3d4e5f6a7b8c9d0e1f2a3b4c">
+
+    <label for="ttsText">Texto a reproducir:</label>
+    <textarea id="ttsText" rows="3" placeholder="Escribe el mensaje de chat o prueba aquí..."></textarea>
+
+    <button onclick="sendTTS()">🔊 Enviar TTS al Stream</button>
+
+    <div class="status" id="status">Conectado y listo para transmitir...</div>
+  </div>
+
+  <script>
+    const socket = io();
+    const statusDiv = document.getElementById('status');
+
+    socket.on('play-tts', (data) => {
+      statusDiv.innerText = "Reproduciendo: " + data.text;
+      const audio = new Audio(data.audio);
+      audio.play();
+    });
+
+    async function sendTTS() {
+      const text = document.getElementById('ttsText').value;
+      const reference_id = document.getElementById('modelId').value;
+
+      if (!text || !reference_id) {
+        alert("Por favor completa el texto y el ID del modelo.");
+        return;
+      }
+
+      statusDiv.innerText = "Procesando con Fish AI...";
+
+      try {
+        const response = await fetch('/api/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, reference_id })
+        });
+
+        const resData = await response.json();
+        if (resData.success) {
+          statusDiv.innerText = "¡Mensaje enviado con éxito!";
+          document.getElementById('ttsText').value = "";
+        } else {
+          statusDiv.innerText = "Error: " + (resData.error || "No se pudo procesar");
+        }
+      } catch (err) {
+        statusDiv.innerText = "Error enviando solicitud.";
+      }
+    }
+  </script>
+
+</body>
+</html>
