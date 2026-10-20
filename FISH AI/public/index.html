@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel de Moderación TTS - Fish AI</title>
-  <script src="/socket.io/socket.io.js"></script>
+  <title>Panel de Moderación TTS - Vercel & Fish AI</title>
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background-color: #0e0e10; color: #efeff1; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
@@ -12,7 +11,7 @@
     h2 { color: #53fc18; text-align: center; margin-top: 0; }
     .badge { background: #26262c; color: #adadb8; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
     label { font-size: 14px; font-weight: bold; margin-top: 15px; display: block; }
-    input, textarea, select { width: 100%; padding: 10px; margin-top: 5px; background: #0e0e10; border: 1px solid #3a3a44; border-radius: 6px; color: #fff; font-size: 14px; }
+    input, textarea { width: 100%; padding: 10px; margin-top: 5px; background: #0e0e10; border: 1px solid #3a3a44; border-radius: 6px; color: #fff; font-size: 14px; }
     button { width: 100%; background: #53fc18; color: #000; border: none; padding: 12px; margin-top: 20px; font-weight: bold; font-size: 16px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
     button:hover { background: #42ca12; }
     .status { text-align: center; margin-top: 15px; font-size: 13px; color: #adadb8; }
@@ -21,7 +20,7 @@
 <body>
 
   <div class="card">
-    <h2>Fish AI TTS Panel <span class="badge">Kick / YT</span></h2>
+    <h2>Fish AI TTS <span class="badge">Vercel</span></h2>
     
     <label for="modelId">ID del Modelo de Voz (Reference ID):</label>
     <input type="text" id="modelId" placeholder="Ej: 7f4a2b1c3d4e..." value="7f4a2b1c3d4e5f6a7b8c9d0e1f2a3b4c">
@@ -29,24 +28,16 @@
     <label for="ttsText">Texto a reproducir:</label>
     <textarea id="ttsText" rows="3" placeholder="Escribe el mensaje de chat o prueba aquí..."></textarea>
 
-    <button onclick="sendTTS()">🔊 Enviar TTS al Stream</button>
+    <button onclick="sendTTS()">🔊 Enviar TTS</button>
 
-    <div class="status" id="status">Conectado y listo para transmitir...</div>
+    <div class="status" id="status">Listo para generar audio...</div>
   </div>
 
   <script>
-    const socket = io();
-    const statusDiv = document.getElementById('status');
-
-    socket.on('play-tts', (data) => {
-      statusDiv.innerText = "Reproduciendo: " + data.text;
-      const audio = new Audio(data.audio);
-      audio.play();
-    });
-
     async function sendTTS() {
       const text = document.getElementById('ttsText').value;
       const reference_id = document.getElementById('modelId').value;
+      const statusDiv = document.getElementById('status');
 
       if (!text || !reference_id) {
         alert("Por favor completa el texto y el ID del modelo.");
@@ -64,13 +55,15 @@
 
         const resData = await response.json();
         if (resData.success) {
-          statusDiv.innerText = "¡Mensaje enviado con éxito!";
+          statusDiv.innerText = "¡Audio generado con éxito!";
+          const audio = new Audio(resData.audio);
+          audio.play();
           document.getElementById('ttsText').value = "";
         } else {
           statusDiv.innerText = "Error: " + (resData.error || "No se pudo procesar");
         }
       } catch (err) {
-        statusDiv.innerText = "Error enviando solicitud.";
+        statusDiv.innerText = "Error en la solicitud.";
       }
     }
   </script>
